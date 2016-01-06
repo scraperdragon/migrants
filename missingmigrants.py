@@ -34,9 +34,6 @@ def get_table_from_header(header):
 def get_table_simple(header):
     # this won't work if there's colspans/rowspans etc.
     # but it's OK for this simple case.
-    header_text = header.text_content()
-    year = int(re.search(r"(\d{4})", header_text).group(1))
-
     table, = header.xpath(".//following::table[1]") # lxml element
     trs = table.xpath(".//tr")
     for tr in trs:
@@ -63,12 +60,17 @@ root = lxml.html.fromstring(html)
 headers = root.xpath("//h1")
 headers = [header for header in headers if 'Deaths by month' in header.text_content()]
 
+tables = []
+table_names = []
+
 for header in headers:
+    year = int(re.search(r"(\d{4})", header.text_content()).group(1))
     table = get_table_simple(header)
     table = clean_table(table)
-    write_excel([table], ["sheet1"])
-    exit()
+    tables.append(table)
+    table_names.append(str(year))
 
+write_excel(tables, table_names)
 
 
 
