@@ -17,7 +17,11 @@ def write_excel(sheets, sheet_names):
         ws = wb.add_sheet(sheet_name)
         for row_num, row in enumerate(sheet):
             for col_num, cell in enumerate(row):
-                ws.write(row_num, col_num, cell)
+                try:
+                    as_float = float(cell)
+                    ws.write(row_num, col_num, as_float) # write number to excel
+                except Exception, e:
+                    ws.write(row_num, col_num, cell) # write without changing to number
     wb.save('migrants.xls')
 
 def get_table_simple(header):
