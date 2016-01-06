@@ -1,3 +1,4 @@
 xypath
 requests
 lxml
+xlwt
