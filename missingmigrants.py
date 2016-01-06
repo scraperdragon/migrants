@@ -6,6 +6,7 @@ import lxml.html
 import xypath
 
 from StringIO import StringIO
+from collections import OrderedDict
 
 import xlwt
 
@@ -53,6 +54,32 @@ def clean_table(table):
             row_builder.append(cell)
         yield row_builder
 
+def find_caveats(header):
+    # note: this is likely to be easily broken: there is no trivial way of getting the comment text out!
+    ptags = header.xpath("./following::table[1]/following-sibling::p")[:3]
+    texts = [ptag.text_content() for ptag in ptags if ptag.text_content().strip()]
+    return '\n'.join(texts)
+
+def create_metadata(**info):
+    # source, methodology, date of dataset, location, caveats and comments.
+    metadata = OrderedDict([
+            ["source", "http://missingmigrants.iom.int/"],
+            ["methodology", "Unknown"],
+            ["date", ""],
+            ["location", BASEURL],
+            ["caveats", ""],
+            ["comments", "Creative Commons Attribution 4.0 International License."]
+            ])
+    metadata.update(info)
+    return metadata
+
+def append_metadata(table, metadata):
+    table = list(table)
+    table.append([])
+    for key, value in metadata.items():
+        table.append([key, value])
+    return table
+
 BASEURL = "http://missingmigrants.iom.int/en/latest-global-figures"
 html = requests.get(BASEURL).content
 root = lxml.html.fromstring(html)
@@ -67,9 +94,10 @@ for header in headers:
     year = int(re.search(r"(\d{4})", header.text_content()).group(1))
     table = get_table_simple(header)
     table = clean_table(table)
+    metadata = create_metadata(date=year, caveats=find_caveats(header))
+    table = append_metadata(table, metadata)
     tables.append(table)
     table_names.append(str(year))
-
 write_excel(tables, table_names)
 
 
