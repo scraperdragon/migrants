@@ -3,7 +3,6 @@ import csv
 
 import requests
 import lxml.html
-import xypath
 
 from StringIO import StringIO
 from collections import OrderedDict
@@ -17,20 +16,6 @@ def write_excel(sheets, sheet_names):
         for row_num, row in enumerate(sheet):
             for col_num, cell in enumerate(row):
                 ws.write(row_num, col_num, cell)
-    wb.save('example.xls')
-
-def get_table_from_header(header):
-    header_text = header.text_content()
-    if 'Deaths by month' not in header_text:
-        return None
-    year = int(re.search(r"(\d{4})", header_text).group(1))
-
-    table, = header.xpath(".//following::table[1]") # lxml element
-    table_as_file = StringIO(lxml.html.tostring(table))
-    return xypath.Table.from_file_object(table_as_file, table_index=0)
-    # the table index is 0 as the <table> element only refers to one table.
-    # this is a simple case so we could just iterate over the <tr> and <td>
-    # elements instead.
 
 def get_table_simple(header):
     # this won't work if there's colspans/rowspans etc.
@@ -99,7 +84,3 @@ for header in headers:
     tables.append(table)
     table_names.append(str(year))
 write_excel(tables, table_names)
-
-
-
-#x = xypath.Table.from_file_object(html_fileobject, table_index=0)
