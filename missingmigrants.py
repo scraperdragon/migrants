@@ -10,6 +10,8 @@ from collections import OrderedDict
 import xlwt
 
 def write_excel(sheets, sheet_names):
+    """Given a list of sheets [which are lists of rows, which are lists of cell values]
+       and a list of sheet names, make an Excel workbook"""
     wb = xlwt.Workbook()
     for sheet, sheet_name in zip(sheets, sheet_names):
         ws = wb.add_sheet(sheet_name)
@@ -19,6 +21,7 @@ def write_excel(sheets, sheet_names):
     wb.save('migrants.xls')
 
 def get_table_simple(header):
+    """Assuming a very simple table with no colspans, rowspans etc, extract the table data"""
     # this won't work if there's colspans/rowspans etc.
     # but it's OK for this simple case.
     table, = header.xpath(".//following::table[1]") # lxml element
@@ -29,6 +32,7 @@ def get_table_simple(header):
         yield values
 
 def clean_table(table):
+    """Remove redundant characters from the values"""
     for row in table:
         row_builder = []
         for cell in row:
@@ -41,13 +45,14 @@ def clean_table(table):
         yield row_builder
 
 def find_caveats(header):
-    # note: this is likely to be easily broken: there is no trivial way of getting the comment text out!
+    """Return the caveats for a table given its header
+    note: this is likely to be easily broken: there is no trivial way of getting the comment text out!"""
     ptags = header.xpath("./following::table[1]/following-sibling::p")[:3]
     texts = [ptag.text_content() for ptag in ptags if ptag.text_content().strip()]
     return '\n'.join(texts)
 
 def create_metadata(**info):
-    # source, methodology, date of dataset, location, caveats and comments.
+    """Create a template for the metadata and insert the contents of parameters into it"""
     metadata = OrderedDict([
             ["source", "http://missingmigrants.iom.int/"],
             ["methodology", "Unknown"],
@@ -60,6 +65,7 @@ def create_metadata(**info):
     return metadata
 
 def append_metadata(table, metadata):
+    """Add the metadata to the end of the table"""
     table = list(table)
     table.append([])
     for key, value in metadata.items():
