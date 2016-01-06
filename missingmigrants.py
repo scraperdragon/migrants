@@ -16,6 +16,7 @@ def write_excel(sheets, sheet_names):
         for row_num, row in enumerate(sheet):
             for col_num, cell in enumerate(row):
                 ws.write(row_num, col_num, cell)
+    wb.save('migrants.xls')
 
 def get_table_simple(header):
     # this won't work if there's colspans/rowspans etc.
